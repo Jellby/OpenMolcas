@@ -260,6 +260,10 @@
             Call dCopy_(1,AuxBuf(4),1,Data(IndDta+RtoI*3+1),1)
          End If
       End If
+*#define _DMET_
+#ifdef _DMET_
+      Call PrMtrx("ONEINT inside Rdone",1,Comp,1,Data)
+#endif
 *
  999  Continue
       If (Close) Then
