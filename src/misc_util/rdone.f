@@ -93,7 +93,9 @@
 *        Write(*,*) 'RdOne: opening OneInt'
          iRC=-1
          iOpt=0
+            Write (6,*) "readone0"
          Call OpnOne(iRC,iOpt,Label,LuOne)
+            Write (6,*) "readone1"
          If (iRC.ne.0) Then
             Write (6,*) 'RdOne: Error opening file'
             Call Abend
@@ -260,6 +262,10 @@
             Call dCopy_(1,AuxBuf(4),1,Data(IndDta+RtoI*3+1),1)
          End If
       End If
+#define _DMET_
+#ifdef _DMET_
+      Call PrMtrx(label,1,Comp,1,Data)
+#endif
 *
  999  Continue
       If (Close) Then
