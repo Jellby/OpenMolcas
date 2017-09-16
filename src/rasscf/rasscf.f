@@ -125,6 +125,7 @@
 #ifndef _DMRG_
       logical :: doDMRG = .false.
 #endif
+      logical doDMET
 
 * Start the traceback utilities
 *
@@ -363,7 +364,7 @@
       Call ReadVc(Work(LCMO),Work(lOCCN),
      &             WORK(LDMAT),WORK(LDSPN),WORK(LPMAT),WORK(LPA))
 * Only now are such variables finally known.
-      If ( IPRLEV.ge.DEBUG ) then
+*     If ( IPRLEV.ge.DEBUG ) then
         CALL TRIPRT('Averaged one-body density matrix, D, in RASSCF',
      &              ' ',Work(LDMAT),NAC)
         CALL TRIPRT('Averaged one-body spin density matrix DS, RASSCF',
@@ -372,7 +373,7 @@
      &              ' ',WORK(LPMAT),NACPAR)
         CALL TRIPRT('Averaged antisym 2-body density matrix PA RASSCF',
      &              ' ',WORK(LPA),NACPAR)
-      END IF
+*     END IF
 *
 * Allocate core space for dynamic storage of data
 *
@@ -449,6 +450,12 @@ c At this point all is ready to potentially dump MO integrals... just do it if r
         end if
         Write(LF,*)
        END IF
+       If(doDMET) then
+           Write(LF,'(45x,a//,36x,a/,36x,a/,36x,a//,45x,a//,36x,a/,'//
+     &               '36x,a/,36x,a//,36x,a/,36x,a,a/,36x,a//)')
+     &        'Welcome DMET'
+      Endif
+
 #ifdef _DMRG_
        if(doDMRG)then
           Write(LF,'(45x,a//,36x,a/,36x,a/,36x,a//,45x,a//,36x,a/,'//
@@ -545,6 +552,7 @@ c At this point all is ready to potentially dump MO integrals... just do it if r
       ITER   = 0
       IFINAL = 0
       TMXTOT = 0.0D0
+      write(6,*) 'RASSCF_VB'
       Call GetMem('FOcc','ALLO','REAL',ipFocc,nTot1)
 *                                                                      *
 ************************************************************************
@@ -566,7 +574,9 @@ c At this point all is ready to potentially dump MO integrals... just do it if r
 
       ITER=ITER+1
       Write(STLNE2,'(A12,I3)')' Iteration ',ITER
+      write(6,*) 'RASSCF_VB 1'
       Call StatusLine('RASSCF:',STLNE2)
+      write(6,*) 'RASSCF_VB 2'
       Call Timing(Swatch,Swatch,Certina_1,Swatch)
       If ( ITER.EQ.1 ) THEN
 ************************************************************************
@@ -574,6 +584,7 @@ c At this point all is ready to potentially dump MO integrals... just do it if r
 ************************************************************************
 *
 * Print header to CI_Iteration file.
+      write(6,*) 'RASSCF_VB 3'
         Write(IterFile,'(20A4)') ('****',i=1,20)
         Write(IterFile,'(15X,A)') 'RASSCF iteration: 1A'
 
@@ -581,19 +592,23 @@ c At this point all is ready to potentially dump MO integrals... just do it if r
         lTemp = lRf
 
 * Compute D1I from CMO coefficients
+      write(6,*) 'RASSCF_VB 4'
         Call Get_D1I_RASSCF(Work(LCMO),Work(lD1I))
-        If ( IPRLEV.ge.DEBUG ) then
+      write(6,*) 'RASSCF_VB 5'
+*       If ( IPRLEV.ge.DEBUG ) then
           Write(LF,*)
           Write(LF,*) ' D1I in AO basis in RASSCF'
           Write(LF,*) ' ---------------------'
           Write(LF,*)
           iOff=1
           Do iSym = 1,nSym
+      write(6,*) 'RASSCF_VB 6'
             iBas = nBas(iSym)
              call wrtmat(Work(lD1I+ioff-1),iBas,iBas, iBas, iBas)
+      write(6,*) 'RASSCF_VB 7'
             iOff = iOff + iBas*iBas
           End Do
-        End If
+*       End If
 
 * Compute D1A from CMO coefficients and, if CIREstart, old DMAT.
         If (iCIRST.eq.1) Then
@@ -608,7 +623,7 @@ c At this point all is ready to potentially dump MO integrals... just do it if r
            Call dcopy_(NTOT2,0.0D0,0,WORK(LD1A),1)
            DoActive = .false.
         End If
-        If ( IPRLEV.ge.DEBUG ) then
+*       If ( IPRLEV.ge.DEBUG ) then
          Write(LF,*)
          Write(LF,*) ' D1A in AO basis in RASSCF bf TRACTL2 1'
          Write(LF,*) ' ---------------------'
@@ -619,7 +634,7 @@ c At this point all is ready to potentially dump MO integrals... just do it if r
           call wrtmat(Work(lD1A+ioff-1),iBas,iBas, iBas, iBas)
           iOff = iOff + iBas*iBas
          End Do
-        end if
+*       end if
 
 *       if(.not.l_casdft) then ! GLM2017Jun02
 
@@ -629,7 +644,7 @@ c At this point all is ready to potentially dump MO integrals... just do it if r
            Call GetMem('PUVX','Allo','Real',LPUVX,NFINT)
            Call FZero(Work(LPUVX),NFINT)
         EndIf
-        If ( IPRLEV.ge.DEBUG ) then
+*       If ( IPRLEV.ge.DEBUG ) then
          Write(LF,*)
          Write(LF,*) ' PUVX in rasscf bf first TRACTL2'
          Write(LF,*) ' ---------------------'
@@ -637,7 +652,7 @@ c At this point all is ready to potentially dump MO integrals... just do it if r
          call wrtmat(Work(LPUVX),1,nFint, 1, nFint)
          Write(LF,*)
          Write(LF,*) ' ---------------------'
-        end if
+*       end if
 
         DoQmat=.false.
         IPR=0
@@ -649,7 +664,7 @@ c At this point all is ready to potentially dump MO integrals... just do it if r
         CALL TRACTL2(WORK(LCMO),WORK(LPUVX),WORK(LTUVX),WORK(LD1I),
      &               WORK(LFI),WORK(LD1A),WORK(LFA),IPR,lSquare,ExFac)
 
-        If ( IPRLEV.ge.DEBUG ) then
+*       If ( IPRLEV.ge.DEBUG ) then
          Write(LF,*)
          Write(LF,*) ' D1A in AO basis in RASSCF af TRACTL2 1'
          Write(LF,*) ' ---------------------'
@@ -675,13 +690,13 @@ c At this point all is ready to potentially dump MO integrals... just do it if r
          write(6,*) (WORK(LTUVX+ind),ind=0,NACPR2-1)
          Write(LF,*)
          Write(LF,*) ' ---------------------'
-        end if
+*       end if
 
         If (.not.DoCholesky .or. ALGO.eq.1) Then
            Call GetMem('PUVX','Free','Real',LPUVX,NFINT)
         EndIf
 
-        If ( IPRLEV.ge.DEBUG ) then
+*       If ( IPRLEV.ge.DEBUG ) then
          Write(LF,*)
          Write(LF,*) ' CMO in RASSCF bf firt call to CICTL'
          Write(LF,*) ' ---------------------'
@@ -697,7 +712,7 @@ c At this point all is ready to potentially dump MO integrals... just do it if r
             iOff = iOff + (iBas*iBas)
           end if
          End Do
-        End If
+*       End If
 
         Call Timing(Swatch,Swatch,Fortis_2,Swatch)
         Fortis_2 = Fortis_2 - Fortis_1
@@ -810,7 +825,7 @@ c.. upt to here, jobiph are all zeros at iadr15(2)
 
         Call Get_D1A_RASSCF(WORK(LCMO),WORK(LDMAT),WORK(LD1A))
 
-        If ( IPRLEV.ge.DEBUG ) then
+*       If ( IPRLEV.ge.DEBUG ) then
          Write(LF,*)
          Write(LF,*) ' D1A in AO basis in RASSCF af Get_D1A_RASSCF'
          Write(LF,*) ' ---------------------'
@@ -821,7 +836,7 @@ c.. upt to here, jobiph are all zeros at iadr15(2)
           call wrtmat(Work(lD1A+ioff-1),iBas,iBas, iBas, iBas)
           iOff = iOff + iBas*iBas
          End Do
-        end if
+*       end if
 
         Call Timing(Swatch,Swatch,Zenith_2,Swatch)
         Zenith_2 = Zenith_2 - Zenith_1
@@ -955,7 +970,7 @@ c.. upt to here, jobiph are all zeros at iadr15(2)
        IPR=0
        IF(IPRLOC(2).EQ.4) IPR=5
        IF(IPRLOC(2).EQ.5) IPR=10
-       If ( IPRLEV.ge.DEBUG ) then
+*      If ( IPRLEV.ge.DEBUG ) then
          Write(LF,*)
          Write(LF,*) ' D1A in AO basis in RASSCF bf TRACTL2 2'
          Write(LF,*) ' ---------------------'
@@ -966,7 +981,7 @@ c.. upt to here, jobiph are all zeros at iadr15(2)
           call wrtmat(Work(lD1A+ioff-1),iBas,iBas, iBas, iBas)
           iOff = iOff + iBas*iBas
          End Do
-       end if
+*      end if
        CALL TRACTL2(WORK(LCMO),WORK(LPUVX),WORK(LTUVX),WORK(LD1I),
      &              WORK(LFI),WORK(LD1A),WORK(LFA),IPR,lSquare,ExFac)
 
@@ -1155,17 +1170,17 @@ c     ^ End IF (.not.l_casdft ) This long if is skipped for MCPDFT
         THMAX = 0.0d0
       END IF
 
-c        CALL TRIPRT('Averaged one-body density matrix, D, in RASSCF',
-c     &              ' ',Work(LDMAT),NAC)
-c        CALL TRIPRT('Averaged one-body spin density matrix DS, RASSCF',
-c     &              ' ',Work(LDSPN),NAC)
-c        CALL TRIPRT('Averaged two-body density matrix, P',
-c     &              ' ',WORK(LPMAT),NACPAR)
-c        CALL TRIPRT('Averaged antisym 2-body density matrix PA RASSCF',
-c     &              ' ',WORK(LPA),NACPAR)
+         CALL TRIPRT('Averaged one-body density matrix, D, in RASSCF',
+     &              ' ',Work(LDMAT),NAC)
+         CALL TRIPRT('Averaged one-body spin density matrix DS, RASSCF',
+     &              ' ',Work(LDSPN),NAC)
+         CALL TRIPRT('Averaged two-body density matrix, P',
+     &              ' ',WORK(LPMAT),NACPAR)
+         CALL TRIPRT('Averaged antisym 2-body density matrix PA RASSCF',
+     &              ' ',WORK(LPA),NACPAR)
 
-      Call Get_D1A_RASSCF(WORK(LCMO),WORK(LDMAT),WORK(LD1A))
-       If ( IPRLEV.ge.DEBUG ) then
+*     Call Get_D1A_RASSCF(WORK(LCMO),WORK(LDMAT),WORK(LD1A))
+*      If ( IPRLEV.ge.DEBUG ) then
         Write(LF,*)
         Write(LF,*) ' D1A in AO basis in RASSCF bf SXCTL'
         Write(LF,*) ' ---------------------'
@@ -1176,7 +1191,7 @@ c     &              ' ',WORK(LPA),NACPAR)
          call wrtmat(Work(LD1A+ioff-1),iBas,iBas, iBas, iBas)
          iOff = iOff + iBas*iBas
         End Do
-       End If
+*      End If
       Call Timing(Swatch,Swatch,Zenith_2,Swatch)
       Zenith_2 = Zenith_2 - Zenith_1
       Zenith_3 = Zenith_3 + Zenith_2
@@ -1189,7 +1204,7 @@ c      Call rasscf_xml(Iter)
 *
       Call Timing(Swatch,Swatch,Gucci_1,Swatch)
 
-       If ( IPRLEV.ge.DEBUG ) then
+*      If ( IPRLEV.ge.DEBUG ) then
         Write(LF,*) ' In RASSCF bf SXCTL'
         CALL TRIPRT('Averaged one-body density matrix, D, in RASSCF',
      &              ' ',Work(LDMAT),NAC)
@@ -1197,11 +1212,11 @@ c      Call rasscf_xml(Iter)
      &              ' ',WORK(LPMAT),NACPAR)
         CALL TRIPRT('Averaged antisym 2-body density matrix PA RASSCF',
      &              ' ',WORK(LPA),NACPAR)
-       end if
+*      end if
       CALL SXCTL(WORK(LCMO),WORK(LOCCN),
      &           WORK(LDMAT),WORK(LPMAT),WORK(LPA),
      &           WORK(LFI),WORK(LFA),WORK(LD1A),THMAX,IFINAL)
-      If ( IPRLEV.ge.DEBUG ) then
+*     If ( IPRLEV.ge.DEBUG ) then
        Write(LF,*)
        Write(LF,*) ' FI+FA in RASSCF after SXCTL'
        Write(LF,*) ' ---------------------'
@@ -1212,7 +1227,7 @@ c      Call rasscf_xml(Iter)
         Call TriPrt(' ',' ',Work(LFA+iOff),iBas)
         iOff = iOff + (iBas*iBas+iBas)/2
        End Do
-      End If
+*     End If
         IF (iDoNECI) THEN
           write(6,*)'RASSCF: For NECI orbital energies are approximated'
           write(6,*)'to the diagonal value of the Fock matrix properly'
@@ -1239,7 +1254,7 @@ cGLM   write(6,*) 'ECAS in RASSCF after call to SXCTL', ECAS
          Call GetMem('Q-mat','Free','Real',ipQmat,NTav)
       EndIf
 
-      If ( IPRLEV.ge.DEBUG ) then
+*     If ( IPRLEV.ge.DEBUG ) then
         Write(LF,*)
         Write(LF,*) ' D1A in AO basis in RASSCF af SXCTL'
         Write(LF,*) ' ---------------------'
@@ -1250,7 +1265,7 @@ cGLM   write(6,*) 'ECAS in RASSCF after call to SXCTL', ECAS
          call wrtmat(Work(LD1A+ioff-1),iBas,iBas, iBas, iBas)
          iOff = iOff + iBas*iBas
         End Do
-      end if
+*     end if
       Call Get_D1A_RASSCF(WORK(LCMO),WORK(LDMAT),WORK(LD1A))
       CASDFT_Funct=0.0d0
       If (KSDFT.ne.'SCF'.and.KSDFT.ne.'PAM') then
@@ -1416,7 +1431,8 @@ cGLM some additional printout for MC-PDFT
 
             if(KeyCION)then
             else
-              IF (DIFFE.GT.1.D-6 .AND. NROOTS.EQ.1) THEN
+*#ifdef _DMET_
+                IF (DIFFE.GT.1.D-6 .AND. NROOTS.EQ.1) THEN
                 Write(LF,'(6X,120A1)') ('=',i=1,120)
               Call WarningMessage(2,'DMRGSCF and DMRG energies differ.')
                 Write(LF,'(6X,A,I11)')    'iteration           ',ITER
@@ -1436,7 +1452,9 @@ cGLM some additional printout for MC-PDFT
                   Write(LF,*)
                 end if
               end if
+*#endif _DMET_
             end if
+*#if _DMET_
           else
             IF (DIFFE.GT.1.D-10 .AND. NROOTS.EQ.1) THEN
               Write(LF,'(6X,120A1)') ('=',i=1,120)
@@ -1458,6 +1476,7 @@ cGLM some additional printout for MC-PDFT
                 GOTO 2000
               END IF
             end if
+*#endif _DMET_
           END IF
         end if
       else
@@ -1518,7 +1537,7 @@ cGLM some additional printout for MC-PDFT
         IF(ITER.LE.3.AND.ICIONLY.EQ.0) GO TO 1000   ! 3->0 checking
         IF(IPRLEV.ge.TERSE) Write(LF,'(6X,A,I3,A)')
      &        'Convergence after',ITER,' iterations'
-        If ( IPRLEV.ge.DEBUG ) then
+*       If ( IPRLEV.ge.DEBUG ) then
          Write(LF,*)
          Write(LF,*) ' CMO in RASSCF after convergence printout'
          Write(LF,*) ' ---------------------'
@@ -1534,7 +1553,7 @@ cGLM some additional printout for MC-PDFT
             iOff = iOff + (iBas*iBas)
           end if
          End Do
-        End If
+*       End If
         IFINAL=1
         Call Add_Info('RASSCF_ITER',DBLE(ITER),1,8)
 *    Call Add_Info('RASSCF_THMX',TMXTOT,1,5)
@@ -1571,7 +1590,7 @@ c Clean-close as much as you can the CASDFT stuff...
         IAD=IADR15(2)
         CALL DDAFILE(JOBIPH,2,WORK(LCMO),NTOT2,IAD)
       ENDIF
-        If ( IPRLEV.ge.DEBUG ) then
+*       If ( IPRLEV.ge.DEBUG ) then
          Write(LF,*)
          Write(LF,*) ' CMO in RASSCF after DDAFILE'
          Write(LF,*) ' ---------------------'
@@ -1587,7 +1606,7 @@ c Clean-close as much as you can the CASDFT stuff...
             iOff = iOff + (iBas*iBas)
           end if
          End Do
-        End If
+*       End If
       IF (NROOTS.GT.1) THEN
        Call StatusLine('RASSCF:','Compute final CI vectors')
       ELSE
