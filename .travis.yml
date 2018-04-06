@@ -3,6 +3,11 @@ compiler: gcc
 os: linux
 git:
   submodules: false
+
+apt:
+  packages:
+  - gfortran
+
 before_script:
 - git submodule update --init External/lapack
 script:
