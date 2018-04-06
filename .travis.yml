@@ -13,4 +13,4 @@ before_script:
 - git submodule update --init External/lapack
 script:
 - mkdir build ; cd build
-- cmake ..
+- cmake .. ; make
