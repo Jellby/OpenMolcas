@@ -1,0 +1,10 @@
+dist: trusty
+compiler: gcc
+os: linux
+git:
+  submodules: false
+before_script:
+- git submodule update --init External/lapack
+script:
+- mkdir build ; cd build
+- cmake ..
