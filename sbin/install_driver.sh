@@ -89,7 +89,7 @@ fi
 # function to read with timeout in POSIX sh
 read_timeout() {
   old=$(stty -g)
-  stty -icanon min 0 time 255
+  stty -icanon min 0 time 250
   read $1
   stty $old
 }
