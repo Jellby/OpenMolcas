@@ -14,7 +14,6 @@ addons:
   apt:
     packages:
     - gfortran
-    - python3
     - python3-pip
 
 install:
@@ -25,7 +24,7 @@ install:
     brew link --overwrite gcc
     brew upgrade python
   fi
-- python3 -m pip install --upgrade pip
+- python3 -m pip install --upgrade --user pip
 - python3 -m pip install --upgrade pyparsing
 
 before_script:
