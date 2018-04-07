@@ -14,12 +14,14 @@ addons:
   apt:
     packages:
     - gfortran
+    - python3-pip
 
 install:
 - |
   if [ ${TRAVIS_OS_NAME} = 'osx' ] ; then
     brew update
     brew install gcc
+    brew link --overwrite gcc
     brew upgrade python
   fi
 - python3 -m pip install --upgrade pip
