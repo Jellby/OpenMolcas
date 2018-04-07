@@ -1,16 +1,37 @@
+language: bash
 dist: trusty
-compiler: gcc
-os: linux
+compiler:
+- gcc
+- clang
+os:
+- linux
+- osx
+env:
+  matrix:
+  - submodules=""
+  - submodules="External/libwfa"
+
 git:
   submodules: false
-
 addons:
   apt:
     packages:
     - gfortran
 
+stages:
+- build
+- test
+
 before_script:
-- git submodule update --init External/lapack
+- |
+  if [ -z "${submodules}" ] ; then export submodules="External/lapack" ; fi
+  for s in ${submodules} ; do
+    git submodule update --init ${s}
+  done
+
 script:
-- mkdir build ; cd build
-- cmake .. ; make
+- mkdir build
+- cd build
+- cmake ..
+- make
+- pymolcas verify 000
