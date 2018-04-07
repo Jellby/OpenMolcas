@@ -4,6 +4,8 @@ os:
 - linux
 - osx
 env:
+  global:
+  - tests="000-010"
   matrix:
   - submodules=""
   - submodules="External/lapack External/libwfa"
@@ -32,13 +34,15 @@ before_script:
   for s in ${submodules} ; do
     git submodule update --init ${s}
   done
+- |
+  if [ -z "${tests}" ] ; then export tests=".all" ; fi
 
 script:
 - mkdir build
 - cd build
 - cmake ..
 - make
-- pymolcas verify .basic
+- pymolcas verify --status ${tests}
 
 after_failure:
 - |
