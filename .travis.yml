@@ -1,15 +1,12 @@
 language: bash
 dist: trusty
-compiler:
-- gcc
-- clang
 os:
 - linux
 - osx
 env:
   matrix:
   - submodules=""
-  - submodules="External/libwfa"
+  - submodules="External/lapack External/libwfa"
 
 git:
   submodules: false
@@ -18,9 +15,13 @@ addons:
     packages:
     - gfortran
 
-stages:
-- build
-- test
+install:
+- |
+  if [ ${TRAVIS_OS_NAME} = 'osx' ] ; then
+    brew update
+    brew install gcc python3
+  fi
+- pip install pyparsing
 
 before_script:
 - |
