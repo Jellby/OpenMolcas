@@ -24,7 +24,7 @@ install:
     brew link --overwrite gcc
     brew upgrade python
   fi
-- pip3 install --upgrade pyparsing
+- pip3 install --upgrade --user pyparsing
 
 before_script:
 - |
@@ -38,10 +38,11 @@ script:
 - cd build
 - cmake ..
 - make
-- pymolcas verify 000
+- pymolcas verify .basic
 
 after_failure:
 - |
   for i in test/failed/*out ; do
-    cat $i ${i/%out/err}
+    tail -n 100 $i
+    cat ${i/%out/err}
   done
